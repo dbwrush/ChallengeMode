@@ -1,0 +1,18 @@
+main: me.sudologic.challengemode.Main
+name: ChallengeMode
+description: Challenge game mode by sudologic
+version: 1.0
+author: sudologic
+api-version: 1.17
+commands:
+  challengemode:
+    description: Main command for ChallengeMode
+    usage: "Usage: /challengemode [mode name]"
+    permission: challengemode.toggle
+permissions:
+  challengemode.toggle.supplydrop:
+    description: "Allows you to toggle supply drop mode"
+    default: op
+  challengemode.toggle.*:
+    description: "Allows you to toggle all challenge modes"
+    default: op
