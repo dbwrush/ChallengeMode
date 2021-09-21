@@ -2,6 +2,7 @@ package me.sudologic.challengemode.modes;
 
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 
 public abstract class GameType {
     public String requiredPermission, toggleCommandExtension;
@@ -19,4 +20,5 @@ public abstract class GameType {
 
     public abstract void start(World world);
     public abstract void end();
+    public abstract void setConfigs(FileConfiguration config);
 }

@@ -1,7 +1,7 @@
 main: me.sudologic.challengemode.Main
 name: ChallengeMode
 description: Challenge game mode by sudologic
-version: 1.0
+version: 1.1
 author: sudologic
 api-version: 1.17
 commands:

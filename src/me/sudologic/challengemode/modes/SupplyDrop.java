@@ -2,15 +2,20 @@ package me.sudologic.challengemode.modes;
 
 import me.sudologic.challengemode.Main;
 import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Chest;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.logging.Level;
 
 public class SupplyDrop extends GameType{
-    private int secondsPerDrop = 90, startingBorder = 5000, endingBorder = 50, lengthInSeconds = 600, noticeInSeconds = 30;
-    //private int ticksPerDrop = 3600, startingBorder = 5000, endingBorder = 50, lengthInTicks = 1209600;
+    private int secondsPerDrop = 360, startingBorder = 5000, endingBorder = 50, lengthInSeconds = 3600, noticeInSeconds = 60, maxSlotsFull = 28;
+    //private int ticksPerDrop = 3600, startingBorder = 5000, endingBorder = 50, lengthInSeconds = 1209600;
     public SupplyDrop() {
         requiredPermission = "challengemode.toggle.supplydrop";
         toggleCommandExtension = "supplydrop";
@@ -26,11 +31,12 @@ public class SupplyDrop extends GameType{
         new BukkitRunnable() {
             int seconds = 0;
             int timeSinceLastItem = 0;
+            Location dropLocation = new Location(world, (Math.random() * startingBorder - 0.5 * startingBorder), 255.0, (Math.random() * startingBorder - 0.5 * startingBorder));
             @Override
             public void run() {
                 double borderSize = world.getWorldBorder().getSize();
-                Location dropLocation = new Location(world, (Math.random() * borderSize - 0.5 * borderSize), 255.0, (Math.random() * borderSize - 0.5 * borderSize));
-                if(timeSinceLastItem + noticeInSeconds == secondsPerDrop) {
+                if(timeSinceLastItem + noticeInSeconds == secondsPerDrop) {//WARN OF DROP
+                    dropLocation = new Location(world, (Math.random() * borderSize - 0.5 * borderSize), 255.0, (Math.random() * borderSize - 0.5 * borderSize));
                     announceDrop(dropLocation, false);
                 }
                 if(timeSinceLastItem >= secondsPerDrop) {
@@ -55,21 +61,46 @@ public class SupplyDrop extends GameType{
     public void end() {
         isRunning = false;
     }
-    public void drop(Location dropLocation) {
-        dropLocation.getWorld().dropItem(dropLocation, genLoot());
+
+    @Override
+    public void setConfigs(FileConfiguration config) {
+        secondsPerDrop = config.getInt("secondsPerDrop");
+        startingBorder = config.getInt("startingBorder");
+        endingBorder = config.getInt("endingBorder");
+        lengthInSeconds = config.getInt("lengthInSeconds");
+        noticeInSeconds = config.getInt("noticeInSeconds");
+        maxSlotsFull = config.getInt("maxSlotsFull");
     }
+
+    public void drop(Location dropLocation) {
+        int y = dropLocation.getWorld().getHighestBlockYAt(dropLocation);
+        Location fullLocation = new Location(dropLocation.getWorld(), dropLocation.getX(), (double)y, dropLocation.getZ());
+        fullLocation.getChunk().setForceLoaded(true);
+        Block block = fullLocation.getBlock();
+        block.setType(Material.CHEST);
+        Chest chest = (Chest)block.getState();
+        Inventory inventory = chest.getBlockInventory();
+        int numSlots = (int)(maxSlotsFull * Math.random());
+        for(int i = 0; i < numSlots; i++) {
+            inventory.addItem(genLoot());
+        }
+        fullLocation.getChunk().setForceLoaded(false);
+    }
+
     public void announceDrop(Location dropLocation, boolean hasDropped) {
         if(hasDropped) {
             Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] SupplyDrop has landed at " + (int)dropLocation.getX() + ", " + (int)dropLocation.getZ());
             for(Player player : Bukkit.getServer().getOnlinePlayers()) {
                 player.sendMessage("[SupplyDrop] Supply Drop has landed at X: " + (int)dropLocation.getX() + " Z: " + (int)dropLocation.getZ());
             }
-        }
-        Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] Announcing SupplyDrop at " + (int)dropLocation.getX() + ", " + (int)dropLocation.getZ());
-        for(Player player : Bukkit.getServer().getOnlinePlayers()) {
-            player.sendMessage("[SupplyDrop] Supply Drop landing at X: " + (int)dropLocation.getX() + " Z: " + (int)dropLocation.getZ() + " in " + (noticeInSeconds / 60) + " minutes!");
+        } else {
+            Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] Announcing SupplyDrop at " + (int)dropLocation.getX() + ", " + (int)dropLocation.getZ());
+            for(Player player : Bukkit.getServer().getOnlinePlayers()) {
+                player.sendMessage("[SupplyDrop] Supply Drop landing at X: " + (int)dropLocation.getX() + " Z: " + (int)dropLocation.getZ() + " in " + (noticeInSeconds / 60) + " minutes!");
+            }
         }
     }
+
     public ItemStack genLoot() {
         double seed = Math.random();
         ItemStack itemStack;

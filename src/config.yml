@@ -1,0 +1,13 @@
+#ChallengeMode created by Sudologic
+
+#SupplyDrop settings
+#secondsPerDrop: How many seconds should pass between drops?
+#startingBorder: Diameter of the World Border at the start of the game.
+#endingBorder: Diameter of the World Border at the end of the game.
+#lengthInSeconds: How long the game should run, in seconds.
+#maxSlotsFull: The maximum number of slots in the chests that will be filled.
+secondsPerDrop: 3600
+startingBorder: 5000
+endingBorder: 50
+lengthInSeconds: 1209600
+maxSlotsFull: 28

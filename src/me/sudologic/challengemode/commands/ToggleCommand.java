@@ -7,7 +7,7 @@ import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
 public class ToggleCommand implements CommandExecutor {
-    private GameType[] gameTypes = {new SupplyDrop()};
+    private static GameType[] gameTypes = {new SupplyDrop()};
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] args) {
@@ -38,4 +38,6 @@ public class ToggleCommand implements CommandExecutor {
         }
         return false;
     }
+
+    public static GameType[] getGameTypes() {return gameTypes;}
 }
