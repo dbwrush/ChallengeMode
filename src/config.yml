@@ -10,4 +10,5 @@ secondsPerDrop: 3600
 startingBorder: 5000
 endingBorder: 50
 lengthInSeconds: 1209600
+noticeInSeconds: 300
 maxSlotsFull: 28
