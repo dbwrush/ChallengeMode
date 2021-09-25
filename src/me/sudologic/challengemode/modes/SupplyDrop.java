@@ -14,16 +14,22 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.logging.Level;
 
 public class SupplyDrop extends GameType{
-    private int secondsPerDrop = 360, startingBorder = 5000, endingBorder = 50, lengthInSeconds = 3600, noticeInSeconds = 60, maxSlotsFull = 28;
-    //private int ticksPerDrop = 3600, startingBorder = 5000, endingBorder = 50, lengthInSeconds = 1209600;
+    private int secondsPerDrop = 3600, startingBorder = 5000, endingBorder = 50, lengthInSeconds = 1209600, noticeInSeconds = 60, maxSlotsFull = 28;
     public SupplyDrop() {
         requiredPermission = "challengemode.toggle.supplydrop";
         toggleCommandExtension = "supplydrop";
     }
 
     @Override
+    public void init() {
+        super.init();
+        dependencies = new String[]{"bordershrink"};
+    }
+
+    @Override
     public void start(World world) {
-        isRunning = true;
+        super.start(world);
+        setRunning(true);
         world.getWorldBorder().setCenter(0,0);
         world.getWorldBorder().setSize(startingBorder);
         world.getWorldBorder().setSize(endingBorder, lengthInSeconds);
@@ -49,7 +55,7 @@ public class SupplyDrop extends GameType{
                 }
                 timeSinceLastItem++;
                 seconds++;
-                if(!isRunning) {
+                if(!getRunning()) {
                     Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] Ending SupplyDrop cycle!");
                     this.cancel();
                 }
@@ -59,7 +65,8 @@ public class SupplyDrop extends GameType{
 
     @Override
     public void end() {
-        isRunning = false;
+        super.end();
+        setRunning(false);
     }
 
     @Override

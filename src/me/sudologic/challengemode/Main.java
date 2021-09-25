@@ -2,6 +2,7 @@ package me.sudologic.challengemode;
 
 import me.sudologic.challengemode.commands.ToggleCommand;
 import me.sudologic.challengemode.modes.GameType;
+import me.sudologic.challengemode.modes.SupplyDrop;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -18,21 +19,24 @@ public class Main extends JavaPlugin {
     private File customConfigFile;
     private FileConfiguration customConfig;
 
-
     private static Main plugin;
     public Main() {}
     public void Plugin(Main plugin) {Main.plugin = plugin;}
     public static Main getPlugin() {return plugin;}
 
+    public static GameManager gameManager;
+
     public void onEnable() {
         Plugin(this);
         Bukkit.getLogger().log(Level.INFO, "[ChallengeMode] Starting ChallengeMode by sudologic!");
-
+        gameManager = new GameManager();
         createCustomConfig();
         createConfigs();
 
         registerListeners();
         registerCommands();
+
+
     }
 
     public void onDisable() {
@@ -62,7 +66,7 @@ public class Main extends JavaPlugin {
         this.saveDefaultConfig();
         this.getConfig();
         FileConfiguration config = this.getConfig();
-        for(GameType gameType : ToggleCommand.getGameTypes()) {
+        for(GameType gameType : GameManager.getGameTypes()) {
             gameType.setConfigs(config);
         }
     }
