@@ -27,12 +27,14 @@ public class SupplyDrop extends GameType{
     }
 
     @Override
+    public void startAsDependency(World world, String[] params) {
+
+    }
+
+    @Override
     public void start(World world) {
         super.start(world);
         setRunning(true);
-        world.getWorldBorder().setCenter(0,0);
-        world.getWorldBorder().setSize(startingBorder);
-        world.getWorldBorder().setSize(endingBorder, lengthInSeconds);
         Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] Starting SupplyDrop cycle!");
         new BukkitRunnable() {
             int seconds = 0;
@@ -72,9 +74,9 @@ public class SupplyDrop extends GameType{
     @Override
     public void setConfigs(FileConfiguration config) {
         secondsPerDrop = config.getInt("secondsPerDrop");
-        startingBorder = config.getInt("startingBorder");
-        endingBorder = config.getInt("endingBorder");
-        lengthInSeconds = config.getInt("lengthInSeconds");
+        startingBorder = config.getInt("supplyStartingBorder");
+        endingBorder = config.getInt("supplyEndingBorder");
+        lengthInSeconds = config.getInt("supplyLengthInSeconds");
         noticeInSeconds = config.getInt("noticeInSeconds");
         maxSlotsFull = config.getInt("maxSlotsFull");
     }

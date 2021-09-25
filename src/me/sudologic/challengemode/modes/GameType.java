@@ -22,15 +22,18 @@ public abstract class GameType {
         }
     }
 
+    public abstract void startAsDependency(World world, String[] params);
+
     public void start(World world) {
         for(String dependency : dependencies) {
             for(GameType gameType : Main.gameManager.getGameTypes()) {
                 if(gameType.toggleCommandExtension.equals(dependency) && !gameType.getRunning()) {
-                    gameType.start(world);
+                    gameType.startAsDependency(world, new String[]{""});
                 }
             }
         }
     }
+
     public void end() {
         for(String dependency : dependencies) {
             for(GameType gameType : Main.gameManager.getGameTypes()) {
@@ -40,6 +43,7 @@ public abstract class GameType {
             }
         }
     }
+
     public abstract void setConfigs(FileConfiguration config);
 
     public Boolean getRunning() {
