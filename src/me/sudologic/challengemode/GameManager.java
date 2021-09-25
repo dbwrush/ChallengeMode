@@ -28,4 +28,15 @@ public class GameManager {
     public static GameType[] getGameTypes() {
         return gameTypes;
     }
+
+    public static GameType getGameType(Class gameType) {
+        for(GameType type : gameTypes) {
+            if(type.equals(gameType.getClass())) {
+                return type;
+            }
+        }
+
+        //if for whatever reason this type is missing from gameTypes:
+        return null;
+    }
 }

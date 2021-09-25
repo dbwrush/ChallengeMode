@@ -7,8 +7,9 @@ import org.bukkit.configuration.file.FileConfiguration;
 import java.util.logging.Level;
 
 public class BorderShrink extends GameType{
-    private int startingBorder, endingBorder, lengthInSeconds;
+    World world;
     public BorderShrink() {
+        defaultParams = new String[3];
         requiredPermission = "challengemode.toggle.bordershrink";
         toggleCommandExtension = "bordershrink";
     }
@@ -20,15 +21,24 @@ public class BorderShrink extends GameType{
 
     @Override
     public void setConfigs(FileConfiguration config) {
-        startingBorder = config.getInt("startingBorder");
-        endingBorder = config.getInt("endingBorder");
-        lengthInSeconds = config.getInt("borderLengthInSeconds");
+        defaultParams[0] = Integer.toString(config.getInt("startingBorder"));
+        defaultParams[1] = Integer.toString(config.getInt("endingBorder"));
+        defaultParams[2] = Integer.toString(config.getInt("borderLengthInSeconds"));
     }
 
     @Override
-    public void start(World world) {
-        super.start(world);
+    public void startDependencies(World world, String[] params) {
+
+    }
+
+
+    @Override
+    public void start(World world, String[] params) {
+        super.start(world, params);
         setRunning(true);
+        int startingBorder = Integer.parseInt(params[0]);
+        int endingBorder = Integer.parseInt(params[1]);
+        int lengthInSeconds = Integer.parseInt(params[2]);
         world.getWorldBorder().setCenter(0,0);
         world.getWorldBorder().setSize(startingBorder);
         world.getWorldBorder().setSize(endingBorder, lengthInSeconds);
@@ -36,12 +46,14 @@ public class BorderShrink extends GameType{
     }
 
     @Override
-    public void startAsDependency(World world, String[] params) {
-        super.start(world);
-        setRunning(true);
-        world.getWorldBorder().setCenter(0,0);
-        world.getWorldBorder().setSize(Integer.parseInt(params[0]));
-        world.getWorldBorder().setSize(Integer.parseInt(params[1]), Integer.parseInt(params[2]));
-        Bukkit.getLogger().log(Level.INFO, "[BorderShrink] Border is now shrinking!");
+    public void end() {
+        super.end();
+        if(!world.equals(null)) {
+            world.getWorldBorder().setSize(30000000);
+        }
+    }
+
+    @Override
+    public void endDependencies() {
     }
 }

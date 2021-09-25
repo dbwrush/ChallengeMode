@@ -7,7 +7,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 public abstract class GameType {
     public String requiredPermission, toggleCommandExtension;
-    public String[] dependencies;
+    public String[] defaultParams;
     public void init() {
         setRunning(false);
     }
@@ -18,30 +18,19 @@ public abstract class GameType {
             end();
         } else {
             commandSender.sendMessage("[ChallengeMode] You activated " + toggleCommandExtension + " mode!");
-            start(world);
+            start(world, new String[]{""});
         }
     }
 
-    public abstract void startAsDependency(World world, String[] params);
-
-    public void start(World world) {
-        for(String dependency : dependencies) {
-            for(GameType gameType : Main.gameManager.getGameTypes()) {
-                if(gameType.toggleCommandExtension.equals(dependency) && !gameType.getRunning()) {
-                    gameType.startAsDependency(world, new String[]{""});
-                }
-            }
+    public void start(World world, String[] params) {
+        if(params[0].equals("")) {
+            params = defaultParams;
         }
+        startDependencies(world, params);
     }
 
     public void end() {
-        for(String dependency : dependencies) {
-            for(GameType gameType : Main.gameManager.getGameTypes()) {
-                if(gameType.toggleCommandExtension.equals(dependency) && gameType.getRunning()) {
-                    gameType.end();
-                }
-            }
-        }
+        endDependencies();
     }
 
     public abstract void setConfigs(FileConfiguration config);
@@ -53,4 +42,7 @@ public abstract class GameType {
     public void setRunning(boolean running) {
         Main.gameManager.setRunning(toggleCommandExtension, running);
     }
+    public abstract void startDependencies(World world, String[] params);
+
+    public abstract void endDependencies();
 }

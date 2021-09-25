@@ -1,5 +1,6 @@
 package me.sudologic.challengemode.modes;
 
+import me.sudologic.challengemode.GameManager;
 import me.sudologic.challengemode.Main;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -11,11 +12,14 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import javax.swing.border.Border;
 import java.util.logging.Level;
 
 public class SupplyDrop extends GameType{
-    private int secondsPerDrop = 3600, startingBorder = 5000, endingBorder = 50, lengthInSeconds = 1209600, noticeInSeconds = 60, maxSlotsFull = 28;
+    BorderShrink borderShrink;
+
     public SupplyDrop() {
+        defaultParams = new String[6];
         requiredPermission = "challengemode.toggle.supplydrop";
         toggleCommandExtension = "supplydrop";
     }
@@ -23,18 +27,17 @@ public class SupplyDrop extends GameType{
     @Override
     public void init() {
         super.init();
-        dependencies = new String[]{"bordershrink"};
     }
 
     @Override
-    public void startAsDependency(World world, String[] params) {
-
-    }
-
-    @Override
-    public void start(World world) {
-        super.start(world);
+    public void start(World world, String[] params) {
+        super.start(world, params);
         setRunning(true);
+        int secondsPerDrop = Integer.parseInt(params[0]);
+        int startingBorder = Integer.parseInt(params[1]);
+        int lengthInSeconds = Integer.parseInt(params[3]);
+        int noticeInSeconds = Integer.parseInt(params[4]);
+        int maxSlotsFull = Integer.parseInt(params[5]);
         Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] Starting SupplyDrop cycle!");
         new BukkitRunnable() {
             int seconds = 0;
@@ -45,11 +48,11 @@ public class SupplyDrop extends GameType{
                 double borderSize = world.getWorldBorder().getSize();
                 if(timeSinceLastItem + noticeInSeconds == secondsPerDrop) {//WARN OF DROP
                     dropLocation = new Location(world, (Math.random() * borderSize - 0.5 * borderSize), 255.0, (Math.random() * borderSize - 0.5 * borderSize));
-                    announceDrop(dropLocation, false);
+                    announceDrop(dropLocation, false, noticeInSeconds);
                 }
                 if(timeSinceLastItem >= secondsPerDrop) {
-                    announceDrop(dropLocation, true);
-                    drop(dropLocation);
+                    announceDrop(dropLocation, true, noticeInSeconds);
+                    drop(dropLocation, maxSlotsFull);
                     timeSinceLastItem = 0;
                 }
                 if(seconds > lengthInSeconds) {
@@ -73,15 +76,22 @@ public class SupplyDrop extends GameType{
 
     @Override
     public void setConfigs(FileConfiguration config) {
-        secondsPerDrop = config.getInt("secondsPerDrop");
-        startingBorder = config.getInt("supplyStartingBorder");
-        endingBorder = config.getInt("supplyEndingBorder");
-        lengthInSeconds = config.getInt("supplyLengthInSeconds");
-        noticeInSeconds = config.getInt("noticeInSeconds");
-        maxSlotsFull = config.getInt("maxSlotsFull");
+        defaultParams[0] = Integer.toString(config.getInt("secondsPerDrop"));
+        defaultParams[1] = Integer.toString(config.getInt("supplyStartingBorder"));
+        defaultParams[2] = Integer.toString(config.getInt("supplyEndingBorder"));
+        defaultParams[3] = Integer.toString(config.getInt("supplyLengthInSeconds"));
+        defaultParams[4] = Integer.toString(config.getInt("noticeInSeconds"));
+        defaultParams[5] = Integer.toString(config.getInt("maxSlotsFull"));
     }
 
-    public void drop(Location dropLocation) {
+    @Override
+    public void startDependencies(World world, String[] params) {
+        borderShrink = (BorderShrink)Main.gameManager.getGameType(BorderShrink.class);
+        String[] depParams = new String[]{params[1], params[2], params[3]};
+        borderShrink.start(world, depParams);
+    }
+
+    public void drop(Location dropLocation, int maxSlotsFull) {
         int y = dropLocation.getWorld().getHighestBlockYAt(dropLocation);
         Location fullLocation = new Location(dropLocation.getWorld(), dropLocation.getX(), (double)y, dropLocation.getZ());
         fullLocation.getChunk().setForceLoaded(true);
@@ -96,7 +106,7 @@ public class SupplyDrop extends GameType{
         fullLocation.getChunk().setForceLoaded(false);
     }
 
-    public void announceDrop(Location dropLocation, boolean hasDropped) {
+    public void announceDrop(Location dropLocation, boolean hasDropped, int noticeInSeconds) {
         if(hasDropped) {
             Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] SupplyDrop has landed at " + (int)dropLocation.getX() + ", " + (int)dropLocation.getZ());
             for(Player player : Bukkit.getServer().getOnlinePlayers()) {
@@ -148,5 +158,10 @@ public class SupplyDrop extends GameType{
         }
         itemStack.setAmount((int)(Math.random() * itemStack.getMaxStackSize()) + 1);
         return itemStack;
+    }
+
+    @Override
+    public void endDependencies() {
+        borderShrink.end();
     }
 }
