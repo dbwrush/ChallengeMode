@@ -1,4 +1,6 @@
 #ChallengeMode created by Sudologic
+#Main Settings
+autoDefaultParams: false
 
 #SupplyDrop settings
 #secondsPerDrop: How many seconds should pass between drops?

@@ -10,6 +10,7 @@ public class BorderShrink extends GameType{
     World world;
     public BorderShrink() {
         defaultParams = new String[3];
+        numParams = defaultParams.length;
         requiredPermission = "challengemode.toggle.bordershrink";
         toggleCommandExtension = "bordershrink";
     }
@@ -35,6 +36,7 @@ public class BorderShrink extends GameType{
     @Override
     public void start(World world, String[] params) {
         super.start(world, params);
+        this.world = world;
         setRunning(true);
         int startingBorder = Integer.parseInt(params[0]);
         int endingBorder = Integer.parseInt(params[1]);
@@ -51,6 +53,7 @@ public class BorderShrink extends GameType{
         if(!world.equals(null)) {
             world.getWorldBorder().setSize(30000000);
         }
+        setRunning(false);
     }
 
     @Override

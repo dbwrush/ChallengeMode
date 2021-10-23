@@ -30,13 +30,12 @@ public class Main extends JavaPlugin {
         Plugin(this);
         Bukkit.getLogger().log(Level.INFO, "[ChallengeMode] Starting ChallengeMode by sudologic!");
         gameManager = new GameManager();
+        gameManager.init();
         createCustomConfig();
         createConfigs();
 
         registerListeners();
         registerCommands();
-
-
     }
 
     public void onDisable() {
@@ -76,6 +75,6 @@ public class Main extends JavaPlugin {
     }
 
     public void registerCommands() {
-        this.getCommand("challengemode").setExecutor(new ToggleCommand());
+        this.getCommand("challengemode").setExecutor(new ToggleCommand(customConfig));
     }
 }

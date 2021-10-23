@@ -20,6 +20,7 @@ public class SupplyDrop extends GameType{
 
     public SupplyDrop() {
         defaultParams = new String[6];
+        numParams = defaultParams.length;
         requiredPermission = "challengemode.toggle.supplydrop";
         toggleCommandExtension = "supplydrop";
     }
@@ -86,7 +87,7 @@ public class SupplyDrop extends GameType{
 
     @Override
     public void startDependencies(World world, String[] params) {
-        borderShrink = (BorderShrink)Main.gameManager.getGameType(BorderShrink.class);
+        borderShrink = (BorderShrink)Main.gameManager.getGameType(BorderShrink.class.getSimpleName());
         String[] depParams = new String[]{params[1], params[2], params[3]};
         borderShrink.start(world, depParams);
     }
