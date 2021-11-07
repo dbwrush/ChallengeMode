@@ -1,24 +1,68 @@
 #ChallengeMode created by Sudologic
 #Main Settings
-autoDefaultParams: false
 
 #SupplyDrop settings
-#secondsPerDrop: How many seconds should pass between drops?
-#startingBorder: Diameter of the World Border at the start of the game.
-#endingBorder: Diameter of the World Border at the end of the game.
-#lengthInSeconds: How long the game should run, in seconds.
-#maxSlotsFull: The maximum number of slots in the chests that will be filled.
-secondsPerDrop: 3600
-supplyStartingBorder: 5000
-supplyEndingBorder: 50
-supplyLengthInSeconds: 1209600
-noticeInSeconds: 300
-maxSlotsFull: 28
+supplyDrop:
+  minTime: 20
+  maxTime: 60
+  lengthInMinutes: 60
+  noticeInMinutes: 5
+  maxSlotsFull: 27
+  totalDropWorth: 1
+  supplyLoot:
+    typeCount: 16
+    types:
+      type1:
+        name: END_CRYSTAL
+        value: 0.001
+      type2:
+        name: NETHERITE_INGOT
+        value: 0.009
+      type3:
+        name: DIAMOND
+        value: 0.04
+      type4:
+        name: TNT
+        value: 0.05
+      type5:
+        name: LAVA_BUCKET
+        value: 0.05
+      type6:
+        name: IRON_INGOT
+        value: 0.05
+      type7:
+        name: GOLD_INGOT
+        value: 0.05
+      type8:
+        name: COOKED_BEEF
+        value: 0.35
+      type9:
+        name: TOTEM_OF_UNDYING
+        value: 0.05
+      type10:
+        name: GOLDEN_CARROT
+        value: 0.05
+      type11:
+        name: MUSIC_DISC_PIGSTEP
+        value: 0.001
+      type12:
+        name: ELYTRA
+        value: 0.09
+      type13:
+        name: FIREWORK_ROCKET
+        value: 0.4
+      type14:
+        name: ANVIL
+        value: 0.05
+      type15:
+        name: FIRE_CHARGE
+        value: 0.05
+      type16:
+        name: APPLE
+        value: 0.05
 
 #BorderShrink settings
-#startingBorder: Diameter of the World Border at the start of the game.
-#endingBorder: Diameter of the World Border at the end of the game.
-#borderLengthInSeconds: How long the game should run, in seconds.
-startingBorder: 5000
-endingBorder: 50
-borderLengthInSeconds: 1209600
+borderShrink:
+  startingBorder: 5000
+  endingBorder: 50
+  minutes: 60

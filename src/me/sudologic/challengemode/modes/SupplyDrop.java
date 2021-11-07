@@ -1,28 +1,30 @@
 package me.sudologic.challengemode.modes;
 
-import me.sudologic.challengemode.GameManager;
 import me.sudologic.challengemode.Main;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import javax.swing.border.Border;
+import java.util.ArrayList;
 import java.util.logging.Level;
 
 public class SupplyDrop extends GameType{
     BorderShrink borderShrink;
-
+    int typeCount;
+    Material[] materials;
+    double[] values;
+    double totalDropWorth = 1.0;
+    double lowestValue;
     public SupplyDrop() {
-        defaultParams = new String[6];
-        numParams = defaultParams.length;
+        defaultParams = Main.getCustomConfig().getConfigurationSection("supplyDrop");
         requiredPermission = "challengemode.toggle.supplydrop";
         toggleCommandExtension = "supplydrop";
+        parseLootTable();
     }
 
     @Override
@@ -31,42 +33,51 @@ public class SupplyDrop extends GameType{
     }
 
     @Override
-    public void start(World world, String[] params) {
-        super.start(world, params);
+    public void start(World world) {
+        super.start(world);
         setRunning(true);
-        int secondsPerDrop = Integer.parseInt(params[0]);
-        int startingBorder = Integer.parseInt(params[1]);
-        int lengthInSeconds = Integer.parseInt(params[3]);
-        int noticeInSeconds = Integer.parseInt(params[4]);
-        int maxSlotsFull = Integer.parseInt(params[5]);
+        int minTime = defaultParams.getInt("minTime");
+        int maxTime = defaultParams.getInt("maxTime");
+        int lengthInMinutes = defaultParams.getInt("lengthInMinutes");
+        int noticeInMinutes = defaultParams.getInt("noticeInMinutes");
+        int maxSlotsFull = defaultParams.getInt("maxSlotsFull");
+        totalDropWorth = defaultParams.getDouble("totalDropWorth");
         Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] Starting SupplyDrop cycle!");
+        if(minTime <= 1) {
+            Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] WARNING minTime should be more than 1 minute! You may have issues otherwise.");
+        }
         new BukkitRunnable() {
-            int seconds = 0;
+            int minutes = 0;
             int timeSinceLastItem = 0;
-            Location dropLocation = new Location(world, (Math.random() * startingBorder - 0.5 * startingBorder), 255.0, (Math.random() * startingBorder - 0.5 * startingBorder));
+            int timeToNextItem = (int)(Math.random() * (maxTime - minTime)) + minTime;
+            double borderSize = world.getWorldBorder().getSize();
+            Location dropLocation = new Location(world, (Math.random() * borderSize - 0.5 * borderSize), 255.0, (Math.random() * borderSize - 0.5 * borderSize));
             @Override
             public void run() {
+                timeSinceLastItem++;
+                minutes++;
+                Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] Next drop in " + (timeToNextItem - timeSinceLastItem) + " minutes!");
                 double borderSize = world.getWorldBorder().getSize();
-                if(timeSinceLastItem + noticeInSeconds == secondsPerDrop) {//WARN OF DROP
+                if(timeSinceLastItem + noticeInMinutes == timeToNextItem) {
                     dropLocation = new Location(world, (Math.random() * borderSize - 0.5 * borderSize), 255.0, (Math.random() * borderSize - 0.5 * borderSize));
-                    announceDrop(dropLocation, false, noticeInSeconds);
+                    announceDrop(dropLocation, false, noticeInMinutes);
                 }
-                if(timeSinceLastItem >= secondsPerDrop) {
-                    announceDrop(dropLocation, true, noticeInSeconds);
+                if(timeSinceLastItem >= timeToNextItem) {
+                    announceDrop(dropLocation, true, noticeInMinutes);
                     drop(dropLocation, maxSlotsFull);
                     timeSinceLastItem = 0;
+                    timeToNextItem = (int)(Math.random() * (maxTime - minTime)) + minTime;
+                    dropLocation = new Location(world, (Math.random() * borderSize - 0.5 * borderSize), 255.0, (Math.random() * borderSize - 0.5 * borderSize));
                 }
-                if(seconds > lengthInSeconds) {
+                if(minutes > lengthInMinutes) {
                     end();
                 }
-                timeSinceLastItem++;
-                seconds++;
                 if(!getRunning()) {
                     Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] Ending SupplyDrop cycle!");
                     this.cancel();
                 }
             }
-        }.runTaskTimer(Main.getPlugin(), 20, 20);
+        }.runTaskTimer(Main.getPlugin(), 1200, 1200);
     }
 
     @Override
@@ -76,89 +87,120 @@ public class SupplyDrop extends GameType{
     }
 
     @Override
-    public void setConfigs(FileConfiguration config) {
-        defaultParams[0] = Integer.toString(config.getInt("secondsPerDrop"));
-        defaultParams[1] = Integer.toString(config.getInt("supplyStartingBorder"));
-        defaultParams[2] = Integer.toString(config.getInt("supplyEndingBorder"));
-        defaultParams[3] = Integer.toString(config.getInt("supplyLengthInSeconds"));
-        defaultParams[4] = Integer.toString(config.getInt("noticeInSeconds"));
-        defaultParams[5] = Integer.toString(config.getInt("maxSlotsFull"));
-    }
-
-    @Override
-    public void startDependencies(World world, String[] params) {
+    public void startDependencies(World world, ConfigurationSection params) {
         borderShrink = (BorderShrink)Main.gameManager.getGameType(BorderShrink.class.getSimpleName());
-        String[] depParams = new String[]{params[1], params[2], params[3]};
-        borderShrink.start(world, depParams);
+        borderShrink.start(world);
     }
 
     public void drop(Location dropLocation, int maxSlotsFull) {
-        int y = dropLocation.getWorld().getHighestBlockYAt(dropLocation);
+        int y = dropLocation.getWorld().getHighestBlockYAt(dropLocation) + 1;
         Location fullLocation = new Location(dropLocation.getWorld(), dropLocation.getX(), (double)y, dropLocation.getZ());
         fullLocation.getChunk().setForceLoaded(true);
         Block block = fullLocation.getBlock();
         block.setType(Material.CHEST);
         Chest chest = (Chest)block.getState();
-        Inventory inventory = chest.getBlockInventory();
-        int numSlots = (int)(maxSlotsFull * Math.random());
-        for(int i = 0; i < numSlots; i++) {
-            inventory.addItem(genLoot());
-        }
+        genLoot(chest.getBlockInventory(), maxSlotsFull);
         fullLocation.getChunk().setForceLoaded(false);
     }
 
-    public void announceDrop(Location dropLocation, boolean hasDropped, int noticeInSeconds) {
+    public void announceDrop(Location dropLocation, boolean hasDropped, int minutes) {
         if(hasDropped) {
-            Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] SupplyDrop has landed at " + (int)dropLocation.getX() + ", " + (int)dropLocation.getZ());
             for(Player player : Bukkit.getServer().getOnlinePlayers()) {
                 player.sendMessage("[SupplyDrop] Supply Drop has landed at X: " + (int)dropLocation.getX() + " Z: " + (int)dropLocation.getZ());
             }
         } else {
-            Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] Announcing SupplyDrop at " + (int)dropLocation.getX() + ", " + (int)dropLocation.getZ());
             for(Player player : Bukkit.getServer().getOnlinePlayers()) {
-                player.sendMessage("[SupplyDrop] Supply Drop landing at X: " + (int)dropLocation.getX() + " Z: " + (int)dropLocation.getZ() + " in " + (noticeInSeconds / 60) + " minutes!");
+                player.sendMessage("[SupplyDrop] Supply Drop landing at X: " + (int)dropLocation.getX() + " Z: " + (int)dropLocation.getZ() + " in " + (minutes) + " minutes!");
             }
         }
     }
 
-    public ItemStack genLoot() {
-        double seed = Math.random();
-        ItemStack itemStack;
-        if(seed > 0.999) {
-            itemStack = new ItemStack(Material.END_CRYSTAL);
-        } else if(seed > 0.99) {
-            itemStack = new ItemStack(Material.NETHERITE_INGOT);
-        } else if(seed > 0.95) {
-            itemStack = new ItemStack(Material.DIAMOND);
-        } else if(seed > 0.90) {
-            itemStack = new ItemStack(Material.TNT);
-        } else if(seed > 0.85) {
-            itemStack = new ItemStack(Material.LAVA_BUCKET);
-        } else if(seed > 0.80) {
-            itemStack = new ItemStack(Material.IRON_INGOT);
-        } else if(seed > 0.75) {
-            itemStack = new ItemStack(Material.GOLD_INGOT);
-        } else if(seed > 0.40) {
-            itemStack = new ItemStack(Material.COOKED_BEEF);
-        } else if(seed > 0.35) {
-            itemStack = new ItemStack(Material.TOTEM_OF_UNDYING);
-        } else if(seed > 0.20) {
-            itemStack = new ItemStack(Material.GOLDEN_CARROT);
-        } else if(seed > 0.199) {
-            itemStack = new ItemStack(Material.MUSIC_DISC_PIGSTEP);
-        } else if(seed > 0.19) {
-            itemStack = new ItemStack(Material.ELYTRA);
-        } else if(seed > 0.15) {
-            itemStack = new ItemStack(Material.FIREWORK_ROCKET);
-        } else if(seed > 0.10) {
-            itemStack = new ItemStack(Material.ANVIL);
-        } else if(seed > 0.5) {
-            itemStack = new ItemStack(Material.FIRE_CHARGE);
-        } else {
-            itemStack = new ItemStack(Material.APPLE);
+    public void parseLootTable() {
+        ConfigurationSection lootTable = defaultParams.getConfigurationSection("supplyLoot");
+
+        typeCount = lootTable.getInt("typeCount");
+        materials = new Material[typeCount];
+        values = new double[typeCount];
+        lootTable = lootTable.getConfigurationSection("types");
+        lowestValue = Double.MAX_VALUE;
+        for(int i = 1; i < typeCount + 1; i++) {
+            if(lootTable.contains("type" + i)) {
+                ConfigurationSection typeConfig = lootTable.getConfigurationSection("type" + i);
+                materials[i - 1] = Material.getMaterial(typeConfig.getString("name"));
+                values[i - 1] = typeConfig.getDouble("value");
+                Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] Adding material " + materials[i - 1]);
+                Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] With value " + values[i - 1]);
+                if(values[i - 1] < lowestValue) {
+                    lowestValue = values[i - 1];
+                }
+            } else {
+                materials[i - 1] = Material.AIR;
+                values[i - 1] = 1000;
+            }
         }
-        itemStack.setAmount((int)(Math.random() * itemStack.getMaxStackSize()) + 1);
-        return itemStack;
+        Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] lowestValue was " + lowestValue);
+    }
+
+    public Inventory genLoot(Inventory inventory, int maxSlotsFull) {
+        Bukkit.getLogger().log(Level.INFO, "Starting to generate chest!");
+        double variability = 0.2 * totalDropWorth;
+        double remainingValue = totalDropWorth + (Math.random() * variability - 0.5 * variability);
+        int filledSlots = 0;
+        Bukkit.getLogger().log(Level.INFO, "Value of chest: " + remainingValue);
+
+        while(remainingValue > lowestValue && filledSlots < maxSlotsFull) {
+            Bukkit.getLogger().log(Level.INFO, "Remaining value " + remainingValue);
+            ArrayList<Integer> candidates = new ArrayList<>();
+            for(int i = 0; i < values.length; i++) {
+                if(values[i] < remainingValue) {
+                    candidates.add(i);
+                }
+            }
+            ItemStack itemStack;
+            int selected = candidates.get((int)(Math.random() * candidates.size()));
+
+            int count = materials[selected].getMaxStackSize();
+            while(count * values[selected] > remainingValue) {
+                count--;
+            }
+            count = (int)(Math.random() * count);
+            if(count <= 0) {
+                count = 1;
+            }
+            remainingValue -= values[selected] * count;
+            itemStack = new ItemStack(materials[selected]);
+            itemStack.setAmount(count);
+            inventory.addItem(itemStack);
+        }
+
+        /*OLD WHILE LOOP STUPIDITY
+        while(remainingValue > 0 && filledSlots < maxSlotsFull) {
+            Bukkit.getLogger().log(Level.INFO, "Remaining value: " + remainingValue);
+            if(remainingValue < lowestValue) {
+                break;
+            }
+            ItemStack itemStack;
+            int selected = materials.length;
+            Bukkit.getLogger().log(Level.INFO, "Selecting material!");
+            while(selected >= materials.length) {
+                int rand = (int)(Math.random() * materials.length);
+                if(values[rand] < remainingValue) {
+                    Bukkit.getLogger().log(Level.INFO, "Selected!");
+                    selected = rand;
+                } else {
+                    Bukkit.getLogger().log(Level.INFO, "Too high!");
+                }
+            }
+            int count = (int)(Math.random() * materials[selected].getMaxStackSize());
+            while(count * values[selected] > remainingValue) {
+                count = (int)(Math.random() * materials[selected].getMaxStackSize());
+            }
+            remainingValue -= values[selected] * count;
+            itemStack = new ItemStack(materials[selected]);
+            itemStack.setAmount(count);
+            inventory.addItem(itemStack);
+        }*/
+        return inventory;
     }
 
     @Override

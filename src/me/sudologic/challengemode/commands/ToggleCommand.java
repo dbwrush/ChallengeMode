@@ -15,13 +15,6 @@ public class ToggleCommand implements CommandExecutor {
     boolean autoDefaultParams;
     GameManager gameManager = Main.gameManager;
 
-    public ToggleCommand(FileConfiguration config) {
-        autoDefaultParams = config.getBoolean("autoDefaultParams");
-        if(autoDefaultParams) {
-            Bukkit.getLogger().log(Level.INFO, "[ChallengeMode] Will use default parameters if parameters are not supplied.");
-        }
-    }
-
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] args) {
         if(args.length > 0) {
@@ -29,11 +22,11 @@ public class ToggleCommand implements CommandExecutor {
                 if(args[0].equals(gameType.toggleCommandExtension)) {
                     if(commandSender.hasPermission(gameType.requiredPermission) || commandSender.hasPermission("challengemode.toggle.*")) {
                         if(commandSender instanceof Player) {
-                            gameType.toggle(((Player)commandSender).getWorld(), commandSender, args, autoDefaultParams);
+                            gameType.toggle(((Player)commandSender).getWorld(), commandSender, autoDefaultParams);
                         } else if(commandSender instanceof BlockCommandSender) {
-                            gameType.toggle(((BlockCommandSender)commandSender).getBlock().getWorld(), commandSender, args, autoDefaultParams);
+                            gameType.toggle(((BlockCommandSender)commandSender).getBlock().getWorld(), commandSender, autoDefaultParams);
                         } else if(commandSender instanceof ConsoleCommandSender) {
-                            gameType.toggle(Bukkit.getWorlds().get(0), commandSender, args, autoDefaultParams);
+                            gameType.toggle(Bukkit.getWorlds().get(0), commandSender, autoDefaultParams);
                         }
                         return true;
                     } else {

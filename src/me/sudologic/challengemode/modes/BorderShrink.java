@@ -1,7 +1,9 @@
 package me.sudologic.challengemode.modes;
 
+import me.sudologic.challengemode.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.logging.Level;
@@ -9,8 +11,7 @@ import java.util.logging.Level;
 public class BorderShrink extends GameType{
     World world;
     public BorderShrink() {
-        defaultParams = new String[3];
-        numParams = defaultParams.length;
+        defaultParams = Main.getCustomConfig().getConfigurationSection("borderShrink");
         requiredPermission = "challengemode.toggle.bordershrink";
         toggleCommandExtension = "bordershrink";
     }
@@ -21,29 +22,23 @@ public class BorderShrink extends GameType{
     }
 
     @Override
-    public void setConfigs(FileConfiguration config) {
-        defaultParams[0] = Integer.toString(config.getInt("startingBorder"));
-        defaultParams[1] = Integer.toString(config.getInt("endingBorder"));
-        defaultParams[2] = Integer.toString(config.getInt("borderLengthInSeconds"));
-    }
-
-    @Override
-    public void startDependencies(World world, String[] params) {
+    public void startDependencies(World world, ConfigurationSection params) {
 
     }
 
-
     @Override
-    public void start(World world, String[] params) {
-        super.start(world, params);
+    public void start(World world) {
+        super.start(world);
         this.world = world;
         setRunning(true);
-        int startingBorder = Integer.parseInt(params[0]);
-        int endingBorder = Integer.parseInt(params[1]);
-        int lengthInSeconds = Integer.parseInt(params[2]);
+        int startingBorder = defaultParams.getInt("startingBorder");
+        int endingBorder = defaultParams.getInt("endingBorder");
+        int minutes = defaultParams.getInt("minutes");
         world.getWorldBorder().setCenter(0,0);
         world.getWorldBorder().setSize(startingBorder);
-        world.getWorldBorder().setSize(endingBorder, lengthInSeconds);
+        Bukkit.getLogger().log(Level.INFO, "[BorderShrink] Setting border to " + startingBorder);
+        world.getWorldBorder().setSize(endingBorder, minutes * 60);
+        Bukkit.getLogger().log(Level.INFO, "[BorderShrink] Border will shrink to " + endingBorder + " over " + minutes + " minutes");
         Bukkit.getLogger().log(Level.INFO, "[BorderShrink] Border is now shrinking!");
     }
 

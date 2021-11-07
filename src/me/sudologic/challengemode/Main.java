@@ -16,8 +16,8 @@ import java.io.IOException;
 import java.util.logging.Level;
 
 public class Main extends JavaPlugin {
-    private File customConfigFile;
-    private FileConfiguration customConfig;
+    private static File customConfigFile;
+    public static FileConfiguration customConfig;
 
     private static Main plugin;
     public Main() {}
@@ -29,10 +29,10 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         Plugin(this);
         Bukkit.getLogger().log(Level.INFO, "[ChallengeMode] Starting ChallengeMode by sudologic!");
-        gameManager = new GameManager();
-        gameManager.init();
         createCustomConfig();
         createConfigs();
+        gameManager = new GameManager();
+        gameManager.init();
 
         registerListeners();
         registerCommands();
@@ -42,7 +42,7 @@ public class Main extends JavaPlugin {
         Bukkit.getLogger().log(Level.INFO, "[ChallengeMode] Shutting down!");
     }
 
-    public FileConfiguration getCustomConfig() {return customConfig;}
+    public static FileConfiguration getCustomConfig() {return customConfig;}
 
     public void createCustomConfig() {
         customConfigFile = new File(getDataFolder(), "config.yml");
@@ -64,10 +64,6 @@ public class Main extends JavaPlugin {
     public void createConfigs() {
         this.saveDefaultConfig();
         this.getConfig();
-        FileConfiguration config = this.getConfig();
-        for(GameType gameType : GameManager.getGameTypes()) {
-            gameType.setConfigs(config);
-        }
     }
 
     public void registerListeners() {
@@ -75,6 +71,6 @@ public class Main extends JavaPlugin {
     }
 
     public void registerCommands() {
-        this.getCommand("challengemode").setExecutor(new ToggleCommand(customConfig));
+        this.getCommand("challengemode").setExecutor(new ToggleCommand());
     }
 }
