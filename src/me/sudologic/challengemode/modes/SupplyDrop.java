@@ -5,6 +5,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -47,8 +48,7 @@ public class SupplyDrop extends GameType{
         int lengthInMinutes = defaultParams.getInt("lengthInMinutes");
         int noticeInMinutes = defaultParams.getInt("noticeInMinutes");
         int maxSlotsFull = defaultParams.getInt("maxSlotsFull");
-        boolean hardcore = defaultParams.getBoolean("hardcore");
-        int hardcoreDelay = defaultParams.getInt("hardcoreDelay");
+        world.setHardcore(false);
         continueBorderWhenDone = defaultParams.getBoolean("continueBorderWhenDone");
         totalDropWorth = defaultParams.getDouble("totalDropWorth");
         Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] Starting SupplyDrop cycle!");
@@ -80,9 +80,6 @@ public class SupplyDrop extends GameType{
                 }
                 if(minutes > lengthInMinutes) {
                     end();
-                }
-                if(minutes == hardcoreDelay && hardcore) {
-                    world.setHardcore(true);
                 }
                 if(!getRunning()) {
                     Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] Ending SupplyDrop cycle!");

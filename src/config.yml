@@ -9,6 +9,7 @@ supplyDrop:
   noticeInMinutes: 5
   maxSlotsFull: 27
   totalDropWorth: 1
+  #Hardcore features currently broken. :(
   hardcore: true
   hardcoreDelay: 10080
   continueBorderWhenDone: true
