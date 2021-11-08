@@ -5,10 +5,12 @@
 supplyDrop:
   minTime: 20
   maxTime: 60
-  lengthInMinutes: 60
+  lengthInMinutes: 10080
   noticeInMinutes: 5
   maxSlotsFull: 27
   totalDropWorth: 1
+  hardcoreWhenDone: true
+  continueBorderWhenDone: true
   supplyLoot:
     typeCount: 16
     types:
@@ -65,4 +67,4 @@ supplyDrop:
 borderShrink:
   startingBorder: 5000
   endingBorder: 50
-  minutes: 60
+  minutes: 20160

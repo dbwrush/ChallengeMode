@@ -10,7 +10,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.logging.Level;
 
 public class SupplyDrop extends GameType{
@@ -20,11 +22,14 @@ public class SupplyDrop extends GameType{
     double[] values;
     double totalDropWorth = 1.0;
     double lowestValue;
+    boolean continueBorderWhenDone = false;
+    HashMap<Chest, Player> chests;
     public SupplyDrop() {
         defaultParams = Main.getCustomConfig().getConfigurationSection("supplyDrop");
         requiredPermission = "challengemode.toggle.supplydrop";
         toggleCommandExtension = "supplydrop";
         parseLootTable();
+        chests = new HashMap<>();
     }
 
     @Override
@@ -41,6 +46,8 @@ public class SupplyDrop extends GameType{
         int lengthInMinutes = defaultParams.getInt("lengthInMinutes");
         int noticeInMinutes = defaultParams.getInt("noticeInMinutes");
         int maxSlotsFull = defaultParams.getInt("maxSlotsFull");
+        boolean hardcoreWhenDone = defaultParams.getBoolean("hardcoreWhenDone");
+        continueBorderWhenDone = defaultParams.getBoolean("continueBorderWhenDone");
         totalDropWorth = defaultParams.getDouble("totalDropWorth");
         Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] Starting SupplyDrop cycle!");
         if(minTime <= 1) {
@@ -70,6 +77,9 @@ public class SupplyDrop extends GameType{
                     dropLocation = new Location(world, (Math.random() * borderSize - 0.5 * borderSize), 255.0, (Math.random() * borderSize - 0.5 * borderSize));
                 }
                 if(minutes > lengthInMinutes) {
+                    if(hardcoreWhenDone) {
+                        world.setHardcore(true);
+                    }
                     end();
                 }
                 if(!getRunning()) {
@@ -99,6 +109,7 @@ public class SupplyDrop extends GameType{
         Block block = fullLocation.getBlock();
         block.setType(Material.CHEST);
         Chest chest = (Chest)block.getState();
+        chests.put(chest, null);
         genLoot(chest.getBlockInventory(), maxSlotsFull);
         fullLocation.getChunk().setForceLoaded(false);
     }
@@ -205,6 +216,19 @@ public class SupplyDrop extends GameType{
 
     @Override
     public void endDependencies() {
-        borderShrink.end();
+        if(!continueBorderWhenDone) {
+            borderShrink.end();
+        }
+    }
+
+    public String[] chestsToStrings() {
+        String[] chestsStrings = new String[chests.size()];
+        int i = 0;
+        for(Chest chest : chests.keySet()) {
+            String s = chest.getX() + " " + chest.getY() + " " + chest.getZ() + chests.get(chest).getDisplayName();
+            chestsStrings[i] = s;
+            i++;
+        }
+        return chestsStrings;
     }
 }
