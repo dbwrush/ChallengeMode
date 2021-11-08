@@ -9,7 +9,8 @@ supplyDrop:
   noticeInMinutes: 5
   maxSlotsFull: 27
   totalDropWorth: 1
-  hardcoreWhenDone: true
+  hardcore: true
+  hardcoreDelay: 10080
   continueBorderWhenDone: true
   supplyLoot:
     typeCount: 16

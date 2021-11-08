@@ -47,7 +47,8 @@ public class SupplyDrop extends GameType{
         int lengthInMinutes = defaultParams.getInt("lengthInMinutes");
         int noticeInMinutes = defaultParams.getInt("noticeInMinutes");
         int maxSlotsFull = defaultParams.getInt("maxSlotsFull");
-        boolean hardcoreWhenDone = defaultParams.getBoolean("hardcoreWhenDone");
+        boolean hardcore = defaultParams.getBoolean("hardcore");
+        int hardcoreDelay = defaultParams.getInt("hardcoreDelay");
         continueBorderWhenDone = defaultParams.getBoolean("continueBorderWhenDone");
         totalDropWorth = defaultParams.getDouble("totalDropWorth");
         Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] Starting SupplyDrop cycle!");
@@ -78,10 +79,10 @@ public class SupplyDrop extends GameType{
                     dropLocation = new Location(world, (Math.random() * borderSize - 0.5 * borderSize), 255.0, (Math.random() * borderSize - 0.5 * borderSize));
                 }
                 if(minutes > lengthInMinutes) {
-                    if(hardcoreWhenDone) {
-                        world.setHardcore(true);
-                    }
                     end();
+                }
+                if(minutes == hardcoreDelay && hardcore) {
+                    world.setHardcore(true);
                 }
                 if(!getRunning()) {
                     Bukkit.getLogger().log(Level.INFO, "[SupplyDrop] Ending SupplyDrop cycle!");
