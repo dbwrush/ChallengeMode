@@ -8,6 +8,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
@@ -159,6 +160,17 @@ public class SupplyDrop extends GameType{
         int filledSlots = 0;
         Bukkit.getLogger().log(Level.INFO, "Value of chest: " + remainingValue);
 
+        ItemStack token = new ItemStack(Material.GOLD_NUGGET);
+        ItemMeta meta = token.getItemMeta();
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add("Authentic SupplyDrop Token");
+        meta.setDisplayName("Token");
+        meta.setLore(lore);
+        token.setItemMeta(meta);
+        token.setAmount(1);
+        inventory.addItem(token);
+        filledSlots++;
+
         while(remainingValue > lowestValue && filledSlots < maxSlotsFull) {
             Bukkit.getLogger().log(Level.INFO, "Remaining value " + remainingValue);
             ArrayList<Integer> candidates = new ArrayList<>();
@@ -182,35 +194,8 @@ public class SupplyDrop extends GameType{
             itemStack = new ItemStack(materials[selected]);
             itemStack.setAmount(count);
             inventory.addItem(itemStack);
+            filledSlots++;
         }
-
-        /*OLD WHILE LOOP STUPIDITY
-        while(remainingValue > 0 && filledSlots < maxSlotsFull) {
-            Bukkit.getLogger().log(Level.INFO, "Remaining value: " + remainingValue);
-            if(remainingValue < lowestValue) {
-                break;
-            }
-            ItemStack itemStack;
-            int selected = materials.length;
-            Bukkit.getLogger().log(Level.INFO, "Selecting material!");
-            while(selected >= materials.length) {
-                int rand = (int)(Math.random() * materials.length);
-                if(values[rand] < remainingValue) {
-                    Bukkit.getLogger().log(Level.INFO, "Selected!");
-                    selected = rand;
-                } else {
-                    Bukkit.getLogger().log(Level.INFO, "Too high!");
-                }
-            }
-            int count = (int)(Math.random() * materials[selected].getMaxStackSize());
-            while(count * values[selected] > remainingValue) {
-                count = (int)(Math.random() * materials[selected].getMaxStackSize());
-            }
-            remainingValue -= values[selected] * count;
-            itemStack = new ItemStack(materials[selected]);
-            itemStack.setAmount(count);
-            inventory.addItem(itemStack);
-        }*/
         return inventory;
     }
 
